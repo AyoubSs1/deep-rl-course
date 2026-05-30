@@ -38,24 +38,6 @@ Chaque famille suit la même structure :
 
 ---
 
-## 🚀 Déployer sur GitHub Pages
-
-```bash
-# 1. Créer le dépôt et pousser
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/<username>/<repo>.git
-git push -u origin main
-
-# 2. Activer GitHub Pages
-# Settings → Pages → Source : main / (root) → Save
-```
-
-Le site sera disponible à `https://<username>.github.io/<repo>/` en ~1 minute.
-
----
-
 ## 📖 Références
 
 - Mnih et al. (2015) — *Human-level control through deep reinforcement learning* (DQN)
