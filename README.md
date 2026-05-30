@@ -38,13 +38,4 @@ Chaque famille suit la même structure :
 
 ---
 
-## 📖 Références
-
-- Mnih et al. (2015) — *Human-level control through deep reinforcement learning* (DQN)
-- Williams (1992) — *Simple statistical gradient-following algorithms* (REINFORCE)
-- Mnih et al. (2016) — *Asynchronous methods for deep RL* (A3C/A2C)
-- Sutton & Barto — *Reinforcement Learning: An Introduction* (2e éd.)
-
----
-
 *Réalisé dans le cadre du cours Deep Reinforcement Learning.*
