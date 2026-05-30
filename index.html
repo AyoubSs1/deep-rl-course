@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Reinforcement Learning — Cours Interactif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & base ────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--surface:#161a22;--surface2:#1e2330;--border:#2a3040;
+  --accent:#4f8ef7;--accent2:#7c5cfc;--green:#34d399;--amber:#fbbf24;--rose:#f87171;
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#4a5168;
+  --font:'Sora','Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:10px;--r2:16px;--shadow:0 4px 24px rgba(0,0,0,.4);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.65;min-height:100vh}
+
+/* ── Layout ──────────────────────────────────────── */
+header{padding:2rem 2rem 0;max-width:1100px;margin:0 auto}
+.site-title{font-size:clamp(1.4rem,3vw,2rem);font-weight:700;letter-spacing:-.02em}
+.site-title span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.site-sub{color:var(--text2);font-size:.9rem;margin-top:.25rem}
+
+/* ── Tabs ────────────────────────────────────────── */
+nav{max-width:1100px;margin:.5rem auto 0;padding:0 2rem}
+.tabs{display:flex;gap:.25rem;border-bottom:1px solid var(--border);overflow-x:auto;padding-bottom:0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:.65rem 1.1rem;border-radius:var(--r) var(--r) 0 0;font-size:.82rem;font-weight:600;color:var(--text2);cursor:pointer;border:1px solid transparent;border-bottom:none;white-space:nowrap;transition:all .2s;background:none;user-select:none}
+.tab:hover{color:var(--text);background:var(--surface)}
+.tab.active{color:var(--text);background:var(--surface2);border-color:var(--border);position:relative}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:var(--surface2)}
+.tab-badge{display:inline-block;padding:.1rem .45rem;border-radius:99px;font-size:.7rem;margin-left:.35rem;font-weight:600}
+.badge-blue{background:rgba(79,142,247,.18);color:var(--accent)}
+.badge-purple{background:rgba(124,92,252,.18);color:#a78bfa}
+.badge-green{background:rgba(52,211,153,.15);color:var(--green)}
+.badge-amber{background:rgba(251,191,36,.15);color:var(--amber)}
+
+/* ── Main content ────────────────────────────────── */
+main{max-width:1100px;margin:0 auto;padding:2rem}
+.page{display:none;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── Cards & sections ────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1.25rem}
+.card-title{font-size:1rem;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.card-title .icon{font-size:1.1rem}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:.4rem}
+h3{font-size:1rem;font-weight:600;color:var(--text2);margin-bottom:1rem;font-weight:400}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media(max-width:700px){.two-col{grid-template-columns:1fr}}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:700px){.three-col{grid-template-columns:1fr}}
+
+/* ── Family intro cards ──────────────────────────── */
+.family-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:700px){.family-cards{grid-template-columns:1fr}}
+.family-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem;cursor:pointer;transition:all .2s}
+.family-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.family-card .num{font-size:2rem;font-weight:700;font-family:var(--mono);opacity:.35}
+.family-card .fname{font-size:1rem;font-weight:600;margin:.25rem 0 .4rem}
+.family-card .fdesc{font-size:.82rem;color:var(--text2);line-height:1.5}
+.family-card .ftag{font-size:.72rem;padding:.2rem .6rem;border-radius:99px;margin-top:.75rem;display:inline-block}
+
+/* ── Steps ───────────────────────────────────────── */
+.steps{display:flex;flex-direction:column;gap:.5rem}
+.step{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s}
+.step:hover{border-color:var(--accent)}
+.step.open{border-color:var(--accent)}
+.step-header{padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;user-select:none}
+.step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600;flex-shrink:0}
+.step-title{font-size:.88rem;font-weight:500;flex:1}
+.step-arrow{color:var(--text3);font-size:.75rem;transition:transform .2s}
+.step.open .step-arrow{transform:rotate(90deg)}
+.step-body{display:none;padding:.75rem 1rem .75rem 2.75rem;font-size:.84rem;color:var(--text2);line-height:1.65;border-top:1px solid var(--border)}
+.step.open .step-body{display:block}
+.step-body code{font-family:var(--mono);font-size:.8rem;background:var(--surface2);padding:.15rem .4rem;border-radius:4px;color:var(--accent)}
+
+/* ── Demo canvas areas ───────────────────────────── */
+.demo-wrap{background:var(--surface2);border-radius:var(--r);padding:1rem;margin-top:.75rem}
+.demo-title{font-size:.78rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem}
+canvas{display:block;border-radius:6px}
+.demo-controls{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;align-items:center}
+button{padding:.45rem .9rem;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font)}
+button:hover{background:var(--surface2);border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:#3a7de0}
+.demo-info{font-size:.78rem;color:var(--text2);margin-top:.5rem;line-height:1.5}
+.demo-stats{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
+.stat{font-size:.78rem}
+.stat-label{color:var(--text3)}
+.stat-val{font-family:var(--mono);font-weight:600;margin-left:.3rem}
+
+/* ── Chips ───────────────────────────────────────── */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.75rem}
+.chip{padding:.25rem .7rem;border-radius:99px;font-size:.75rem;border:1px solid var(--border);color:var(--text2)}
+
+/* ── Table ───────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;margin-top:.5rem}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{background:var(--surface2);padding:.7rem 1rem;text-align:left;font-weight:600;color:var(--text2);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:.7rem 1rem;border-top:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:hover td{background:rgba(255,255,255,.02)}
+.dot-green::before,.dot-blue::before,.dot-purple::before{content:'●';margin-right:.4rem;font-size:.7rem}
+.dot-green::before{color:var(--green)}
+.dot-blue::before{color:var(--accent)}
+.dot-purple::before{color:#a78bfa}
+
+/* ── Decision tree ───────────────────────────────── */
+.dtree{display:flex;flex-direction:column;gap:.75rem}
+.dnode{border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;font-size:.84rem;transition:border-color .2s}
+.dnode.q{border-left:3px solid var(--amber);cursor:pointer}
+.dnode.q:hover{border-color:var(--amber)}
+.dnode.ans-blue{border-left:3px solid var(--accent);background:rgba(79,142,247,.06)}
+.dnode.ans-purple{border-left:3px solid #a78bfa;background:rgba(167,139,250,.06)}
+.dnode.ans-green{border-left:3px solid var(--green);background:rgba(52,211,153,.06)}
+.dnode-q{font-weight:600;color:var(--amber)}
+.dnode-sub{font-size:.78rem;color:var(--text2);margin-top:.3rem}
+.dnode-label{font-weight:600;margin-bottom:.2rem}
+
+/* ── Pills for algo tags ─────────────────────────── */
+.pill{display:inline-block;padding:.2rem .65rem;border-radius:99px;font-size:.72rem;font-weight:600;margin:.2rem}
+.pill-blue{background:rgba(79,142,247,.15);color:var(--accent)}
+.pill-purple{background:rgba(124,92,252,.15);color:#a78bfa}
+.pill-green{background:rgba(52,211,153,.12);color:var(--green)}
+
+/* ── MDP diagram ─────────────────────────────────── */
+.mdp-row{display:flex;align-items:center;gap:0;justify-content:center;flex-wrap:wrap;margin:1.25rem 0}
+.mdp-node{width:90px;height:60px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;text-align:center;font-size:.8rem;font-weight:600;flex-shrink:0}
+.mdp-arrow{font-size:1.4rem;color:var(--text3);padding:0 .5rem;flex-shrink:0}
+.mdp-label{font-size:.7rem;font-weight:400;color:var(--text2);display:block;margin-top:.2rem}
+
+/* ── Gauge ───────────────────────────────────────── */
+.gauge-row{display:flex;gap:.75rem;align-items:center;margin:.4rem 0}
+.gauge-name{font-size:.8rem;width:100px;color:var(--text2);flex-shrink:0}
+.gauge-bar{flex:1;height:7px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:99px;transition:width 1s ease}
+.gauge-val{font-size:.78rem;font-family:var(--mono);font-weight:600;width:32px;text-align:right}
+
+/* ── Tooltip ─────────────────────────────────────── */
+.tooltip{position:relative;display:inline-block;border-bottom:1px dotted var(--text3);cursor:help}
+.tooltip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1a1f2e;color:var(--text);padding:.4rem .7rem;border-radius:6px;font-size:.75rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;border:1px solid var(--border);z-index:10}
+.tooltip:hover::after{opacity:1}
+
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="site-title">Deep <span>Reinforcement Learning</span></div>
+  <div class="site-sub">Cours interactif — DQN · Policy Gradient · Actor-Critic</div>
+</header>
+
+<nav>
+  <div class="tabs">
+    <div class="tab active" data-page="overview">Vue d'ensemble</div>
+    <div class="tab" data-page="dqn">01 · DQN <span class="tab-badge badge-blue">Value</span></div>
+    <div class="tab" data-page="policy">02 · Policy <span class="tab-badge badge-purple">Gradient</span></div>
+    <div class="tab" data-page="ac">03 · Actor-Critic <span class="tab-badge badge-green">Hybride</span></div>
+    <div class="tab" data-page="compare">Comparaison <span class="tab-badge badge-amber">⚖</span></div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════
+     PAGE : Vue d'ensemble
+══════════════════════════════════════════════ -->
+<div class="page active" id="page-overview">
+  <h2>L'Apprentissage par Renforcement Profond</h2>
+  <h3>Un agent apprend à agir en maximisant ses récompenses cumulées</h3>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🔄</span> Le problème commun : le MDP</div>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:1rem">Toutes les familles DRL résolvent le même cadre <span class="tooltip" data-tip="Markov Decision Process : cadre mathématique où l'état futur ne dépend que de l'état présent">MDP</span>. Un agent observe un état, choisit une action, reçoit une récompense et passe à l'état suivant.</p>
+    <div class="mdp-row">
+      <div class="mdp-node" style="background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.3)">
+        <div>État<br><span class="mdp-label">s<sub>t</sub></span></div>
+      </div>
+      <div class="mdp-arrow">→</div>
+      <div class="mdp-node" style="background:rgba(124,92,252,.15);border:1px solid rgba(124,92,252,.3)">
+        <div>Agent<br><span class="mdp-label">π(a|s)</span></div>
+      </div>
+      <div class="mdp-arrow">→</div>
+      <div class="mdp-node" style="background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25)">
+        <div>Action<br><span class="mdp-label">a<sub>t</sub></span></div>
+      </div>
+      <div class="mdp-arrow">→</div>
+      <div class="mdp-node" style="background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25)">
+        <div>Env.<br><span class="mdp-label">r, s<sub>t+1</sub></span></div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:.78rem;color:var(--text3)">Objectif : maximiser G<sub>t</sub> = r<sub>t</sub> + γr<sub>t+1</sub> + γ²r<sub>t+2</sub> + …</div>
+  </div>
+
+  <p style="font-size:.88rem;font-weight:600;margin-bottom:.75rem">Les trois grandes familles — cliquez pour explorer</p>
+  <div class="family-cards">
+    <div class="family-card" onclick="goTo('dqn')">
+      <div class="num">01</div>
+      <div class="fname">DQN</div>
+      <div class="fdesc">Apprend à <strong>noter</strong> chaque action via une fonction Q(s,a). Choisit l'action de meilleur score.</div>
+      <div class="ftag" style="background:rgba(79,142,247,.15);color:var(--accent)">Value-based</div>
+    </div>
+    <div class="family-card" onclick="goTo('policy')">
+      <div class="num">02</div>
+      <div class="fname">Policy Network</div>
+      <div class="fdesc">Apprend directement la <strong>politique</strong> π(a|s). Idéal pour les espaces d'actions continus.</div>
+      <div class="ftag" style="background:rgba(124,92,252,.15);color:#a78bfa">Policy-based</div>
+    </div>
+    <div class="family-card" onclick="goTo('ac')">
+      <div class="num">03</div>
+      <div class="fname">Actor-Critic</div>
+      <div class="fdesc">Combine les deux : un <strong>acteur</strong> (politique) guidé par un <strong>critique</strong> (valeur).</div>
+      <div class="ftag" style="background:rgba(52,211,153,.12);color:var(--green)">Hybride</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> Profil des trois approches</div>
+    <div style="margin-top:.5rem">
+      <div style="font-size:.75rem;color:var(--text3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.06em">Score relatif (0 → 100)</div>
+      <p style="font-size:.8rem;font-weight:600;color:var(--accent);margin:.75rem 0 .3rem">DQN</p>
+      <div class="gauge-row"><div class="gauge-name">Stabilité</div><div class="gauge-bar"><div class="gauge-fill" style="width:70%;background:var(--accent)"></div></div><div class="gauge-val" style="color:var(--accent)">70</div></div>
+      <div class="gauge-row"><div class="gauge-name">Actions cont.</div><div class="gauge-bar"><div class="gauge-fill" style="width:10%;background:var(--accent)"></div></div><div class="gauge-val" style="color:var(--accent)">10</div></div>
+      <div class="gauge-row"><div class="gauge-name">Efficacité</div><div class="gauge-bar"><div class="gauge-fill" style="width:80%;background:var(--accent)"></div></div><div class="gauge-val" style="color:var(--accent)">80</div></div>
+      <p style="font-size:.8rem;font-weight:600;color:#a78bfa;margin:.75rem 0 .3rem">Policy Gradient</p>
+      <div class="gauge-row"><div class="gauge-name">Stabilité</div><div class="gauge-bar"><div class="gauge-fill" style="width:40%;background:#a78bfa"></div></div><div class="gauge-val" style="color:#a78bfa">40</div></div>
+      <div class="gauge-row"><div class="gauge-name">Actions cont.</div><div class="gauge-bar"><div class="gauge-fill" style="width:90%;background:#a78bfa"></div></div><div class="gauge-val" style="color:#a78bfa">90</div></div>
+      <div class="gauge-row"><div class="gauge-name">Efficacité</div><div class="gauge-bar"><div class="gauge-fill" style="width:45%;background:#a78bfa"></div></div><div class="gauge-val" style="color:#a78bfa">45</div></div>
+      <p style="font-size:.8rem;font-weight:600;color:var(--green);margin:.75rem 0 .3rem">Actor-Critic</p>
+      <div class="gauge-row"><div class="gauge-name">Stabilité</div><div class="gauge-bar"><div class="gauge-fill" style="width:85%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">85</div></div>
+      <div class="gauge-row"><div class="gauge-name">Actions cont.</div><div class="gauge-bar"><div class="gauge-fill" style="width:90%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">90</div></div>
+      <div class="gauge-row"><div class="gauge-name">Efficacité</div><div class="gauge-bar"><div class="gauge-fill" style="width:75%;background:var(--green)"></div></div><div class="gauge-val" style="color:var(--green)">75</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE : DQN
+══════════════════════════════════════════════ -->
+<div class="page" id="page-dqn">
+  <h2>01 · DQN — Deep Q-Network</h2>
+  <h3>Méthode basée sur la valeur · Espace d'actions discret</h3>
+
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">⚙️</span> Comment ça marche</div>
+        <div class="steps" id="steps-dqn"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🕐</span> Quand l'utiliser</div>
+        <ul style="font-size:.84rem;color:var(--text2);padding-left:1.25rem;line-height:2">
+          <li>Espace d'actions <strong style="color:var(--text)">discret et fini</strong></li>
+          <li>Environnements avec <strong style="color:var(--text)">état observé</strong> (non partiel)</li>
+          <li>Jeux Atari, navigation en grille</li>
+          <li>Quand la stabilité est prioritaire</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">CartPole</span><span class="chip">Atari</span><span class="chip">Gridworld</span><span class="chip">Traffic routing</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🧪</span> Démo interactive</div>
+        <div class="demo-wrap">
+          <div class="demo-title">Réseau Q — scores par action</div>
+          <canvas id="dqn-canvas" width="340" height="160"></canvas>
+          <div class="demo-controls">
+            <button class="primary" onclick="dqnStep()">▶ Étape suivante</button>
+            <button onclick="dqnReset()">↺ Réinitialiser</button>
+          </div>
+          <div class="demo-stats">
+            <div class="stat"><span class="stat-label">Épisode</span><span class="stat-val" id="dqn-ep">0</span></div>
+            <div class="stat"><span class="stat-label">ε</span><span class="stat-val" id="dqn-eps">1.00</span></div>
+            <div class="stat"><span class="stat-label">Score</span><span class="stat-val" id="dqn-score">—</span></div>
+          </div>
+        </div>
+        <div class="demo-wrap" style="margin-top:.75rem">
+          <div class="demo-title">Replay Buffer (transitions stockées)</div>
+          <canvas id="replay-canvas" width="340" height="80"></canvas>
+          <div class="demo-info" id="replay-info">Le buffer se remplit au fil des épisodes. L'agent tire des mini-batchs aléatoires pour briser les corrélations.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🔗</span> Algorithmes associés</div>
+        <span class="pill pill-blue">DQN</span>
+        <span class="pill pill-blue">Double DQN</span>
+        <span class="pill pill-blue">Dueling DQN</span>
+        <span class="pill pill-blue">Rainbow</span>
+        <span class="pill pill-blue">PER</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE : Policy Gradient
+══════════════════════════════════════════════ -->
+<div class="page" id="page-policy">
+  <h2>02 · Policy Network — Gradient de Politique</h2>
+  <h3>Méthode basée sur la politique · Discret ou Continu</h3>
+
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">⚙️</span> Comment ça marche</div>
+        <div class="steps" id="steps-policy"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🕐</span> Quand l'utiliser</div>
+        <ul style="font-size:.84rem;color:var(--text2);padding-left:1.25rem;line-height:2">
+          <li>Espace d'actions <strong style="color:var(--text)">continu</strong> (bras robotique)</li>
+          <li>Politique <strong style="color:var(--text)">stochastique</strong> souhaitée</li>
+          <li>Problèmes où Q est difficile à estimer</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">MuJoCo</span><span class="chip">Robotique</span><span class="chip">NLP</span><span class="chip">Trading</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🧪</span> Démo — Formation de la politique</div>
+        <div class="demo-wrap">
+          <div class="demo-title">Distribution de politique (cas discret)</div>
+          <canvas id="pg-canvas" width="340" height="160"></canvas>
+          <div class="demo-controls">
+            <button class="primary" onclick="pgStep()">▶ Mettre à jour</button>
+            <button onclick="pgReset()">↺ Réinitialiser</button>
+          </div>
+          <div class="demo-stats">
+            <div class="stat"><span class="stat-label">Itération</span><span class="stat-val" id="pg-iter">0</span></div>
+            <div class="stat"><span class="stat-label">Retour G</span><span class="stat-val" id="pg-g">—</span></div>
+            <div class="stat"><span class="stat-label">Entropie</span><span class="stat-val" id="pg-ent">—</span></div>
+          </div>
+        </div>
+        <div class="demo-wrap" style="margin-top:.75rem">
+          <div class="demo-title">Cas continu — Distribution gaussienne π(a|s)</div>
+          <canvas id="gauss-canvas" width="340" height="100"></canvas>
+          <div class="demo-controls">
+            <label style="font-size:.78rem;color:var(--text2)">μ</label>
+            <input type="range" id="mu-slider" min="-2" max="2" step="0.1" value="0" style="width:80px" oninput="drawGauss()">
+            <label style="font-size:.78rem;color:var(--text2)">σ</label>
+            <input type="range" id="sig-slider" min="0.2" max="2" step="0.1" value="1" style="width:80px" oninput="drawGauss()">
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🔗</span> Algorithmes associés</div>
+        <span class="pill pill-purple">REINFORCE</span>
+        <span class="pill pill-purple">REINFORCE+baseline</span>
+        <span class="pill pill-purple">TRPO</span>
+        <span class="pill pill-purple">PPO</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE : Actor-Critic
+══════════════════════════════════════════════ -->
+<div class="page" id="page-ac">
+  <h2>03 · Actor-Critic</h2>
+  <h3>Méthode hybride · Politique + Valeur · Discret ou Continu</h3>
+
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">⚙️</span> Comment ça marche</div>
+        <div class="steps" id="steps-ac"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🕐</span> Quand l'utiliser</div>
+        <ul style="font-size:.84rem;color:var(--text2);padding-left:1.25rem;line-height:2">
+          <li>Meilleur compromis <strong style="color:var(--text)">variance / stabilité</strong></li>
+          <li>Environnements complexes (LunarLander, robotique)</li>
+          <li>Quand on veut des <strong style="color:var(--text)">actions continues stables</strong></li>
+          <li>Apprentissage parallèle (A3C)</li>
+        </ul>
+        <div class="chips">
+          <span class="chip">LunarLander</span><span class="chip">Mujoco</span><span class="chip">Humanoid</span><span class="chip">SAC</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🧪</span> Démo — Boucle Acteur ↔ Critique</div>
+        <div class="demo-wrap">
+          <div class="demo-title">Avantage A(s,a) = r + γV(s') − V(s)</div>
+          <canvas id="ac-canvas" width="340" height="180"></canvas>
+          <div class="demo-controls">
+            <button class="primary" onclick="acStep()">▶ Simuler un pas</button>
+            <button onclick="acReset()">↺ Réinitialiser</button>
+          </div>
+          <div class="demo-stats">
+            <div class="stat"><span class="stat-label">V(s)</span><span class="stat-val" id="ac-vs">—</span></div>
+            <div class="stat"><span class="stat-label">r</span><span class="stat-val" id="ac-r">—</span></div>
+            <div class="stat"><span class="stat-label">Avantage</span><span class="stat-val" id="ac-adv">—</span></div>
+            <div class="stat"><span class="stat-label">Étape</span><span class="stat-val" id="ac-step">0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🔗</span> Algorithmes associés</div>
+        <span class="pill pill-green">A2C</span>
+        <span class="pill pill-green">A3C</span>
+        <span class="pill pill-green">PPO</span>
+        <span class="pill pill-green">SAC</span>
+        <span class="pill pill-green">TD3</span>
+        <span class="pill pill-green">DDPG</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE : Comparaison
+══════════════════════════════════════════════ -->
+<div class="page" id="page-compare">
+  <h2>Comparaison des Familles DRL</h2>
+  <h3>D'après le cours — Tableau Comparatif des Familles DRL</h3>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span> Tableau comparatif</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Algorithme / Famille</th>
+            <th>Type d'apprentissage</th>
+            <th>Espace d'actions</th>
+            <th>Stabilité &amp; Convergence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="dot-blue">DQN</strong><br><span style="font-size:.75rem;color:var(--text3)">Deep Q-Network</span></td>
+            <td>Basé sur la Valeur<br><span style="font-size:.75rem;color:var(--text3)">(Value-based)</span></td>
+            <td><span style="color:var(--rose)">Discret uniquement</span></td>
+            <td>Instable sans Replay Buffer ; généralement convergent avec Target Network</td>
+          </tr>
+          <tr>
+            <td><strong class="dot-purple">Policy Network</strong><br><span style="font-size:.75rem;color:var(--text3)">REINFORCE, PPO…</span></td>
+            <td>Basé sur la Politique<br><span style="font-size:.75rem;color:var(--text3)">(Policy-based)</span></td>
+            <td><span style="color:var(--green)">Discret ou Continu</span></td>
+            <td>Forte variance, convergence locale ; nécessite de multiples échantillons</td>
+          </tr>
+          <tr>
+            <td><strong class="dot-green">Deep Actor-Critic</strong><br><span style="font-size:.75rem;color:var(--text3)">A2C, A3C, SAC…</span></td>
+            <td>Hybride<br><span style="font-size:.75rem;color:var(--text3)">(Politique + Valeur)</span></td>
+            <td><span style="color:var(--green)">Discret ou Continu</span></td>
+            <td>Plus stable ; variance réduite grâce à l'estimation de l'Avantage</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><span class="icon">🌳</span> Arbre de décision — Quel algorithme choisir ?</div>
+      <div class="dtree">
+        <div class="dnode q">
+          <div class="dnode-q">❓ L'espace d'actions est-il continu ?</div>
+          <div class="dnode-sub">ex. vitesse d'un moteur, angle d'un bras robotique</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div>
+            <div style="font-size:.75rem;color:var(--rose);font-weight:600;margin-bottom:.4rem">✗ Non → Discret</div>
+            <div class="dnode q">
+              <div class="dnode-q">Beaucoup d'états ?</div>
+            </div>
+            <div class="dnode ans-blue" style="margin-top:.5rem">
+              <div class="dnode-label" style="color:var(--accent)">→ DQN</div>
+              <div style="font-size:.78rem;color:var(--text2)">Stable, efficace en mémoire d'expérience</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.75rem;color:var(--green);font-weight:600;margin-bottom:.4rem">✓ Oui → Continu</div>
+            <div class="dnode q">
+              <div class="dnode-q">Priorité stabilité ?</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
+              <div class="dnode ans-green">
+                <div class="dnode-label" style="color:var(--green)">→ Actor-Critic (SAC, PPO)</div>
+                <div style="font-size:.78rem;color:var(--text2)">Meilleur compromis variance/stabilité</div>
+              </div>
+              <div class="dnode ans-purple">
+                <div class="dnode-label" style="color:#a78bfa">→ Policy Gradient (REINFORCE)</div>
+                <div style="font-size:.78rem;color:var(--text2)">Simple, bonne exploration</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">⚡</span> Points clés à retenir</div>
+      <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.84rem">
+        <div style="padding:.75rem;background:rgba(79,142,247,.08);border-radius:var(--r);border-left:3px solid var(--accent)">
+          <strong>DQN</strong> — Le Replay Buffer et le Target Network sont essentiels. Sans eux, le réseau diverge.
+        </div>
+        <div style="padding:.75rem;background:rgba(124,92,252,.08);border-radius:var(--r);border-left:3px solid #a78bfa">
+          <strong>Policy Gradient</strong> — La variance élevée est le problème principal. Le baseline (V(s)) réduit cette variance sans biaiser le gradient.
+        </div>
+        <div style="padding:.75rem;background:rgba(52,211,153,.08);border-radius:var(--r);border-left:3px solid var(--green)">
+          <strong>Actor-Critic</strong> — L'avantage A(s,a) = r + γV(s') − V(s) indique si l'action était meilleure ou pire qu'attendu.
+        </div>
+        <div style="padding:.75rem;background:rgba(251,191,36,.08);border-radius:var(--r);border-left:3px solid var(--amber)">
+          <strong>En pratique</strong> — PPO (Actor-Critic) est aujourd'hui l'algorithme de référence pour la plupart des tâches continues.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer style="text-align:center;padding:2rem;font-size:.75rem;color:var(--text3);border-top:1px solid var(--border);margin-top:1rem">
+  Deep Reinforcement Learning — Cours interactif · Références : Mnih et al. 2015 · Williams 1992 · Sutton &amp; Barto
+</footer>
+
+<script>
+/* ══════════════════════════════════════════
+   Navigation
+══════════════════════════════════════════ */
+function goTo(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[data-page="'+id+'"]').classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+}
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>goTo(tab.dataset.page));
+});
+
+/* ══════════════════════════════════════════
+   Steps data
+══════════════════════════════════════════ */
+const STEPS = {
+  dqn:[
+    {title:'Observer l\'état s_t',color:'#4f8ef7',
+     body:'L\'agent reçoit le vecteur d\'état de l\'environnement (ex : position, vitesse pour CartPole). Ce vecteur est passé en entrée du réseau Q.'},
+    {title:'Choisir une action (ε-greedy)',color:'#4f8ef7',
+     body:'Avec probabilité ε, l\'agent explore (action aléatoire). Sinon il exploite : <code>a = argmax Q(s,a)</code>. ε décroît de 1.0 → 0.01 au fil des épisodes.'},
+    {title:'Stocker la transition dans le Replay Buffer',color:'#4f8ef7',
+     body:'La transition <code>(s, a, r, s\')</code> est ajoutée à une mémoire FIFO de capacité N. Cela brise les corrélations temporelles lors de l\'apprentissage.'},
+    {title:'Tirer un mini-batch et calculer la cible',color:'#4f8ef7',
+     body:'On tire B transitions aléatoires. La cible est : <code>y = r + γ · max Q_target(s\',a\')</code>. Q_target est un réseau gelé, mis à jour toutes les C étapes.'},
+    {title:'Minimiser la perte de Bellman',color:'#4f8ef7',
+     body:'On rétropropage <code>L = E[(Q(s,a) − y)²]</code>. La clip de gradient (norm ≤ 1) évite les explosions. Le réseau principal est mis à jour, pas le réseau cible.'},
+  ],
+  policy:[
+    {title:'Collecter un épisode complet',color:'#a78bfa',
+     body:'L\'agent joue un épisode entier en suivant π_θ(a|s). On enregistre les paires (état, action, récompense). Monte Carlo : on attend la fin pour calculer le retour.'},
+    {title:'Calculer le retour actualisé G_t',color:'#a78bfa',
+     body:'<code>G_t = r_t + γ·r_{t+1} + γ²·r_{t+2} + …</code>. G_t mesure la qualité réelle de l\'action a_t. γ ∈ [0.9, 0.99] contrôle l\'horizon temporel.'},
+    {title:'Appliquer un baseline pour réduire la variance',color:'#a78bfa',
+     body:'On soustrait une baseline b(s) (souvent V(s)) : <code>A_t = G_t − b(s_t)</code>. Cela ne biaise pas le gradient mais réduit fortement la variance.'},
+    {title:'Mettre à jour θ par gradient ascendant',color:'#a78bfa',
+     body:'<code>∇θ J = E[∇θ log π_θ(a|s) · G_t]</code>. On monte le gradient pour augmenter la probabilité des actions qui ont donné un bon retour, et la baisser sinon.'},
+  ],
+  ac:[
+    {title:'L\'Acteur choisit une action',color:'#34d399',
+     body:'L\'acteur est un réseau π_θ(a|s) qui produit une distribution sur les actions. On sample a ~ π_θ(·|s). C\'est lui qui interagit avec l\'environnement.'},
+    {title:'Le Critique évalue l\'état',color:'#34d399',
+     body:'Le critique est un réseau V_φ(s) qui estime la valeur espérée de l\'état. Il répond à : "quel retour moyen puis-je espérer depuis cet état ?"'},
+    {title:'Calculer l\'Avantage A(s,a)',color:'#34d399',
+     body:'<code>A(s,a) = r + γ·V(s\') − V(s)</code>. Si A > 0 : l\'action était meilleure qu\'attendu. Si A < 0 : moins bonne. Cela réduit la variance vs REINFORCE.'},
+    {title:'Mise à jour simultanée des deux réseaux',color:'#34d399',
+     body:'Perte acteur : <code>−log π(a|s)·A</code>. Perte critique : <code>(r + γV(s\') − V(s))²</code>. Les deux pertes sont backpropagées ensemble (réseau partagé possible).'},
+  ]
+};
+
+Object.entries(STEPS).forEach(([key,steps])=>{
+  const container=document.getElementById('steps-'+key);
+  steps.forEach((s,i)=>{
+    const el=document.createElement('div');
+    el.className='step';
+    el.innerHTML=`<div class="step-header">
+      <div class="step-num" style="background:${s.color}22;color:${s.color}">${i+1}</div>
+      <div class="step-title">${s.title}</div>
+      <div class="step-arrow">▶</div>
+    </div>
+    <div class="step-body">${s.body}</div>`;
+    el.querySelector('.step-header').onclick=()=>{
+      el.classList.toggle('open');
+    };
+    container.appendChild(el);
+  });
+});
+
+/* ══════════════════════════════════════════
+   DQN Demo
+══════════════════════════════════════════ */
+let dqnEp=0, dqnEps=1.0, dqnReward=0;
+let dqnQ=[0.5,0.5,0.5,0.5], dqnBuffer=[];
+const dqnActions=['←','→','↑','↓'];
+
+function dqnDraw(){
+  const c=document.getElementById('dqn-canvas');
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  const W=c.width,H=c.height;
+  ctx.fillStyle='#161a22';ctx.fillRect(0,0,W,H);
+
+  const barW=50,gap=18,startX=20;
+  const maxQ=Math.max(...dqnQ.map(Math.abs),1);
+
+  dqnQ.forEach((q,i)=>{
+    const x=startX+i*(barW+gap);
+    const isMax=q===Math.max(...dqnQ);
+    const barH=Math.abs(q)/maxQ*(H-70);
+    const y=H-40-barH;
+    const color=isMax?'#4f8ef7':'#2a3040';
+    ctx.fillStyle=color;
+    ctx.beginPath();ctx.roundRect(x,y,barW,barH,4);ctx.fill();
+
+    ctx.fillStyle=isMax?'#4f8ef7':'#8b92a8';
+    ctx.font='bold 13px JetBrains Mono,monospace';
+    ctx.textAlign='center';
+    ctx.fillText(q.toFixed(2),x+barW/2,y-6);
+
+    ctx.fillStyle='#8b92a8';ctx.font='14px sans-serif';
+    ctx.fillText(dqnActions[i],x+barW/2,H-20);
+
+    if(isMax){
+      ctx.fillStyle='#4f8ef7';ctx.font='bold 10px sans-serif';
+      ctx.fillText('★ max',x+barW/2,H-6);
+    }
+  });
+
+  ctx.fillStyle='#4a5168';ctx.font='11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Q(s, a)',10,14);
+  ctx.fillStyle=dqnEps>0.5?'#fbbf24':'#34d399';
+  ctx.fillText('mode: '+(dqnEps>Math.random()?'explore':'exploit'),180,14);
+}
+
+function dqnStep(){
+  dqnEp++;
+  dqnEps=Math.max(0.01,dqnEps*0.92);
+  dqnQ=dqnQ.map(q=>{
+    const target=Math.random()*2-1;
+    return +(q+0.15*(target-q)+(Math.random()-0.5)*0.15).toFixed(3);
+  });
+  dqnReward=Math.round(Math.random()*40+dqnEp*0.8);
+  if(dqnBuffer.length<20)dqnBuffer.push({r:dqnReward});
+  else{dqnBuffer.shift();dqnBuffer.push({r:dqnReward});}
+  document.getElementById('dqn-ep').textContent=dqnEp;
+  document.getElementById('dqn-eps').textContent=dqnEps.toFixed(2);
+  document.getElementById('dqn-score').textContent=dqnReward;
+  dqnDraw();drawReplay();
+}
+function dqnReset(){
+  dqnEp=0;dqnEps=1.0;dqnReward=0;dqnQ=[0.5,0.5,0.5,0.5];dqnBuffer=[];
+  document.getElementById('dqn-ep').textContent=0;
+  document.getElementById('dqn-eps').textContent='1.00';
+  document.getElementById('dqn-score').textContent='—';
+  dqnDraw();drawReplay();
+}
+
+function drawReplay(){
+  const c=document.getElementById('replay-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#161a22';ctx.fillRect(0,0,W,H);
+  const cap=20,cellW=(W-20)/cap,cellH=H-20;
+  for(let i=0;i<cap;i++){
+    const x=10+i*cellW;
+    const filled=i<dqnBuffer.length;
+    ctx.fillStyle=filled?'rgba(79,142,247,0.7)':'#2a3040';
+    ctx.beginPath();ctx.roundRect(x+1,10,cellW-2,cellH,3);ctx.fill();
+  }
+  ctx.fillStyle='#8b92a8';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText(dqnBuffer.length+' / 20 transitions',10,H-2);
+}
+dqnDraw();drawReplay();
+
+/* ══════════════════════════════════════════
+   Policy Gradient Demo
+══════════════════════════════════════════ */
+let pgIter=0,pgProbs=[0.25,0.25,0.25,0.25];
+const pgColors=['#a78bfa','#7c5cfc','#c4b5fd','#6d28d9'];
+const pgLabels=['←','→','↑','↓'];
+
+function softmax(arr){
+  const maxV=Math.max(...arr);
+  const exp=arr.map(x=>Math.exp(x-maxV));
+  const sum=exp.reduce((a,b)=>a+b,0);
+  return exp.map(e=>e/sum);
+}
+function entropy(p){return -p.reduce((s,pi)=>pi>0?s+pi*Math.log2(pi):s,0);}
+
+function pgDraw(){
+  const c=document.getElementById('pg-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#161a22';ctx.fillRect(0,0,W,H);
+  const barW=55,gap=15,startX=25;
+  pgProbs.forEach((p,i)=>{
+    const x=startX+i*(barW+gap);
+    const barH=p*(H-60);
+    const y=H-40-barH;
+    ctx.fillStyle=pgColors[i]+'bb';
+    ctx.beginPath();ctx.roundRect(x,y,barW,barH,4);ctx.fill();
+    ctx.fillStyle=pgColors[i];
+    ctx.font='bold 12px JetBrains Mono,monospace';ctx.textAlign='center';
+    ctx.fillText((p*100).toFixed(1)+'%',x+barW/2,y-5);
+    ctx.fillStyle='#8b92a8';ctx.font='14px sans-serif';
+    ctx.fillText(pgLabels[i],x+barW/2,H-20);
+  });
+  ctx.fillStyle='#4a5168';ctx.font='11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('π(a|s)',10,14);
+}
+
+function pgStep(){
+  pgIter++;
+  // Simule un gradient montant pour l'action "→" (indice 1)
+  const logits=[Math.random()-.5,pgIter*0.12+Math.random()*.3,Math.random()-.3,Math.random()-.4];
+  pgProbs=softmax(logits);
+  const G=(15+pgIter*1.2+Math.random()*5).toFixed(1);
+  const H=entropy(pgProbs).toFixed(2);
+  document.getElementById('pg-iter').textContent=pgIter;
+  document.getElementById('pg-g').textContent=G;
+  document.getElementById('pg-ent').textContent=H;
+  pgDraw();
+}
+function pgReset(){
+  pgIter=0;pgProbs=[0.25,0.25,0.25,0.25];
+  document.getElementById('pg-iter').textContent=0;
+  document.getElementById('pg-g').textContent='—';
+  document.getElementById('pg-ent').textContent='—';
+  pgDraw();
+}
+pgDraw();
+
+function drawGauss(){
+  const c=document.getElementById('gauss-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#161a22';ctx.fillRect(0,0,W,H);
+  const mu=parseFloat(document.getElementById('mu-slider').value);
+  const sig=parseFloat(document.getElementById('sig-slider').value);
+  const xMin=-4,xMax=4;
+  function g(x){return Math.exp(-0.5*((x-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));}
+  const pts=200;
+  // area
+  ctx.beginPath();
+  for(let i=0;i<=pts;i++){
+    const x=xMin+(xMax-xMin)*i/pts;
+    const px=(x-xMin)/(xMax-xMin)*W;
+    const py=H-15-g(x)*(H-30);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.lineTo(W,H-15);ctx.lineTo(0,H-15);ctx.closePath();
+  ctx.fillStyle='rgba(167,139,250,0.18)';ctx.fill();
+  // line
+  ctx.beginPath();
+  for(let i=0;i<=pts;i++){
+    const x=xMin+(xMax-xMin)*i/pts;
+    const px=(x-xMin)/(xMax-xMin)*W;
+    const py=H-15-g(x)*(H-30);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;ctx.stroke();
+  // mu line
+  const muPx=(mu-xMin)/(xMax-xMin)*W;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(muPx,10);ctx.lineTo(muPx,H-15);
+  ctx.strokeStyle='#fbbf24';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#fbbf24';ctx.font='11px monospace';ctx.textAlign='center';
+  ctx.fillText('μ='+mu.toFixed(1),muPx,8);
+  ctx.fillStyle='#8b92a8';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('σ='+sig.toFixed(1),6,H-2);
+}
+drawGauss();
+
+/* ══════════════════════════════════════════
+   Actor-Critic Demo
+══════════════════════════════════════════ */
+let acStepN=0,acHistory=[],acVs=1.5;
+const AC_GAMMA=0.99;
+
+function acDraw(){
+  const c=document.getElementById('ac-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#161a22';ctx.fillRect(0,0,W,H);
+
+  // Title row: Actor | Critic
+  function box(x,y,w,h,color,label,val){
+    ctx.fillStyle=color+'22';
+    ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();
+    ctx.strokeStyle=color+'88';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=color;ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+    ctx.fillText(label,x+w/2,y+16);
+    ctx.fillStyle='#e8eaf0';ctx.font='bold 14px JetBrains Mono,monospace';
+    ctx.fillText(val,x+w/2,y+36);
+  }
+
+  const vs=acVs.toFixed(2);
+  const r=acHistory.length?acHistory[acHistory.length-1].r.toFixed(2):'—';
+  const adv=acHistory.length?acHistory[acHistory.length-1].adv.toFixed(3):'—';
+  const vsp=acHistory.length?acHistory[acHistory.length-1].vsp.toFixed(2):'—';
+
+  box(15,10,90,50,'#34d399','ACTEUR','π(a|s)');
+  box(240,10,90,50,'#4f8ef7','CRITIQUE','V(s)='+vs);
+
+  // Arrow between
+  ctx.strokeStyle='#4a5168';ctx.lineWidth=1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(108,35);ctx.lineTo(237,35);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#8b92a8';ctx.font='10px sans-serif';ctx.textAlign='center';
+  ctx.fillText('A(s,a)',172,28);
+
+  // Advantage gauge
+  const advNum=acHistory.length?acHistory[acHistory.length-1].adv:0;
+  const barMaxW=W-40;const barH2=12;
+  const barY=80;
+  ctx.fillStyle='#2a3040';ctx.beginPath();ctx.roundRect(20,barY,barMaxW,barH2,4);ctx.fill();
+  const fill=Math.min(1,Math.max(0,(advNum+2)/4));
+  const fillColor=advNum>=0?'#34d399':'#f87171';
+  ctx.fillStyle=fillColor;
+  if(advNum>=0){
+    ctx.beginPath();ctx.roundRect(20+barMaxW/2,barY,Math.min(barMaxW/2,fill*barMaxW-barMaxW/2+barMaxW/2),barH2,4);ctx.fill();
+  } else {
+    const w2=Math.min(barMaxW/2,(1-fill)*barMaxW);
+    ctx.beginPath();ctx.roundRect(20+barMaxW/2-w2,barY,w2,barH2,4);ctx.fill();
+  }
+  // center line
+  ctx.strokeStyle='#4a5168';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(20+barMaxW/2,barY-4);ctx.lineTo(20+barMaxW/2,barY+barH2+4);ctx.stroke();
+  ctx.fillStyle='#8b92a8';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('A < 0 (pénaliser)',22,barY+barH2+14);
+  ctx.textAlign='right';ctx.fillText('A > 0 (renforcer)',20+barMaxW,barY+barH2+14);
+
+  // History sparkline
+  if(acHistory.length>1){
+    const hMax=Math.max(...acHistory.map(h=>Math.abs(h.adv)),0.1);
+    ctx.beginPath();
+    acHistory.forEach((h,i)=>{
+      const x=20+i*(barMaxW/(Math.max(acHistory.length-1,1)));
+      const y=H-20-(h.adv/hMax)*(40)+20;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle='rgba(79,142,247,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  ctx.fillStyle='#4a5168';ctx.font='10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Historique des avantages A(s,a)',20,H-5);
+}
+
+function acStep(){
+  acStepN++;
+  const r=parseFloat((Math.random()*2-0.5).toFixed(2));
+  const vsp=parseFloat((acVs+Math.random()*.4-.2).toFixed(2));
+  const adv=r+AC_GAMMA*vsp-acVs;
+  acVs=parseFloat((acVs+0.05*(vsp-acVs)).toFixed(3));
+  acHistory.push({r,vsp,adv});
+  if(acHistory.length>30)acHistory.shift();
+  document.getElementById('ac-vs').textContent=acVs.toFixed(2);
+  document.getElementById('ac-r').textContent=r.toFixed(2);
+  document.getElementById('ac-adv').textContent=adv.toFixed(3);
+  document.getElementById('ac-step').textContent=acStepN;
+  acDraw();
+}
+function acReset(){
+  acStepN=0;acHistory=[];acVs=1.5;
+  document.getElementById('ac-vs').textContent='—';
+  document.getElementById('ac-r').textContent='—';
+  document.getElementById('ac-adv').textContent='—';
+  document.getElementById('ac-step').textContent=0;
+  acDraw();
+}
+acDraw();
+</script>
+</body>
+</html>
